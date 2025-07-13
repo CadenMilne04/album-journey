@@ -6,4 +6,13 @@ const router = express.Router();
 // GET /api/albums/genre/:genre
 router.get('/genre/:genre', albumController.getAlbumsByGenre);
 
+// POST /api/albums/generate/:genre (for explicit ChatGPT generation)
+router.post('/generate/:genre', albumController.generateAlbumsByGenre);
+
+// GET /api/albums/cache (get cached genres)
+router.get('/cache', albumController.getCachedGenres);
+
+// DELETE /api/albums/cache (clear cache)
+router.delete('/cache', albumController.clearCache);
+
 module.exports = router;

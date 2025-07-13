@@ -1,3 +1,6 @@
+const groqService = require('./groqService');
+const databaseService = require('./databaseService');
+
 // Mock service for album data - mirrors the frontend mock data
 const mockAlbumData = {
   "punk rock": {
@@ -367,20 +370,69 @@ const mockAlbumData = {
 };
 
 const getAlbumsForGenre = async (genre) => {
-  // Simulate API delay to mimic database call
+  const normalizedGenre = genre.toLowerCase().trim();
+  
+  // First check the database cache
+  try {
+    const cachedData = await databaseService.getAlbumData(normalizedGenre);
+    if (cachedData) {
+      return {
+        albums: cachedData.albums || [],
+        links: cachedData.links || [],
+        eras: cachedData.eras || [],
+        source: 'cache'
+      };
+    }
+  } catch (error) {
+    console.error('Error checking cache:', error.message);
+  }
+  
+  // Try Groq AI service
+  if (groqService.isAvailable()) {
+    try {
+      console.log(`Generating album data for "${genre}" using Groq...`);
+      const generatedData = await groqService.generateAlbumData(genre);
+      
+      // Cache the generated data
+      try {
+        await databaseService.saveAlbumData(normalizedGenre, generatedData);
+      } catch (cacheError) {
+        console.error('Error caching generated data:', cacheError.message);
+      }
+      
+      return {
+        albums: generatedData.albums || [],
+        links: generatedData.links || [],
+        eras: generatedData.eras || [],
+        source: 'groq'
+      };
+    } catch (error) {
+      console.error('Groq generation failed, falling back to mock data:', error.message);
+    }
+  }
+  
+  // Fallback to mock data
+  console.log(`Using mock data for "${genre}"`);
   await new Promise(resolve => setTimeout(resolve, 100));
   
-  const normalizedGenre = genre.toLowerCase().trim();
   const data = mockAlbumData[normalizedGenre];
   
   if (!data) {
-    return { albums: [], links: [], eras: [] };
+    return { albums: [], links: [], eras: [], source: 'none' };
+  }
+  
+  // Cache mock data if it exists
+  try {
+    await databaseService.saveAlbumData(normalizedGenre, data);
+  } catch (cacheError) {
+    console.error('Error caching mock data:', cacheError.message);
   }
   
   return {
     albums: data.albums || [],
     links: data.links || [],
-    eras: data.eras || []
+    eras: data.eras || [],
+    source: 'mock'
   };
 };
 
@@ -388,7 +440,28 @@ const getAvailableGenres = () => {
   return Object.keys(mockAlbumData);
 };
 
+const getCachedGenres = async () => {
+  try {
+    return await databaseService.getCachedGenres();
+  } catch (error) {
+    console.error('Error fetching cached genres:', error.message);
+    return [];
+  }
+};
+
+const clearCache = async () => {
+  try {
+    await databaseService.clearCache();
+    return { success: true, message: 'Cache cleared successfully' };
+  } catch (error) {
+    console.error('Error clearing cache:', error.message);
+    return { success: false, message: 'Failed to clear cache' };
+  }
+};
+
 module.exports = {
   getAlbumsForGenre,
-  getAvailableGenres
+  getAvailableGenres,
+  getCachedGenres,
+  clearCache
 };
