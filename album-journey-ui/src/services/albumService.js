@@ -1,6 +1,48 @@
 // Mock service for album data - will be replaced with real API calls later
 const mockAlbumData = {
   "punk rock": {
+    "eras": [
+      {
+        "id": "pioneer",
+        "name": "Pioneer Era",
+        "period": "1970s",
+        "color": "#ff6b6b",
+        "description": "The birth of punk rock",
+        "yearRange": [1970, 1979]
+      },
+      {
+        "id": "early_hardcore",
+        "name": "Early Hardcore",
+        "period": "1980-84",
+        "color": "#4ecdc4",
+        "description": "Raw energy and DIY ethics",
+        "yearRange": [1980, 1984]
+      },
+      {
+        "id": "late_evolution",
+        "name": "Late 80s Evolution",
+        "period": "1985-89",
+        "color": "#45b7d1",
+        "description": "Diversification and experimentation",
+        "yearRange": [1985, 1989]
+      },
+      {
+        "id": "grunge_alternative",
+        "name": "Grunge & Alternative",
+        "period": "1990-94",
+        "color": "#96ceb4",
+        "description": "Mainstream breakthrough",
+        "yearRange": [1990, 1994]
+      },
+      {
+        "id": "pop_punk",
+        "name": "Pop Punk Era",
+        "period": "1995+",
+        "color": "#feca57",
+        "description": "Commercial success and accessibility",
+        "yearRange": [1995, 2030]
+      }
+    ],
     "albums": [
       {
         "id": "ramones_1976",
@@ -286,13 +328,41 @@ const mockAlbumData = {
 };
 
 export const getAlbumsForGenre = async (genre) => {
-  // Simulate API delay
-  await new Promise(resolve => setTimeout(resolve, 800));
-  
-  const normalizedGenre = genre.toLowerCase().trim();
-  return mockAlbumData[normalizedGenre] || { albums: [], links: [] };
+  try {
+    const response = await fetch(`http://localhost:3001/api/albums/genre/${encodeURIComponent(genre)}`);
+    
+    if (!response.ok) {
+      if (response.status === 404) {
+        return { albums: [], links: [], eras: [] };
+      }
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    return {
+      albums: data.albums || [],
+      links: data.links || [],
+      eras: data.eras || []
+    };
+  } catch (error) {
+    console.error('Error fetching albums from API:', error);
+    // Fallback to mock data if API is unavailable
+    const normalizedGenre = genre.toLowerCase().trim();
+    const data = mockAlbumData[normalizedGenre];
+    if (!data) {
+      return { albums: [], links: [], eras: [] };
+    }
+    
+    return {
+      albums: data.albums || [],
+      links: data.links || [],
+      eras: data.eras || []
+    };
+  }
 };
 
 export const getAvailableGenres = () => {
+  // For now, return the available genres from mock data
+  // TODO: In the future, this could call /api/albums/genres endpoint
   return Object.keys(mockAlbumData);
 };

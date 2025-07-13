@@ -5,7 +5,7 @@ import AlbumGraph from './components/AlbumGraph'
 import { getAlbumsForGenre } from './services/albumService'
 
 function App() {
-  const [albumData, setAlbumData] = useState({ albums: [], links: [] })
+  const [albumData, setAlbumData] = useState({ albums: [], links: [], eras: [] })
   const [isLoading, setIsLoading] = useState(false)
   const [currentGenre, setCurrentGenre] = useState('')
   const [error, setError] = useState('')
@@ -39,7 +39,7 @@ function App() {
             <span className="title-subtitle">Explore Musical Evolution</span>
           </h1>
           <p className="app-description">
-            Discover the influential albums that shaped music genres through an interactive 3D timeline
+            Discover the influential albums that shaped music genres through an interactive timeline
           </p>
         </div>
       </header>
@@ -69,7 +69,21 @@ function App() {
         </div>
 
         <div className="graph-section">
-          <AlbumGraph albums={albumData.albums} links={albumData.links} />
+          <div className="graph-layout">
+            <div className="graph-canvas">
+              <AlbumGraph albums={albumData.albums} links={albumData.links} eras={albumData.eras} />
+            </div>
+            <div className="graph-sidebar">
+              <div id="album-hover-info" className="album-hover-section">
+                <h3>Hover an Album</h3>
+                <p>Move your mouse over any album to see quick details here.</p>
+              </div>
+              <div id="album-details" className="album-details-section">
+                <h3>Album Details</h3>
+                <p>Click on any album to see detailed information here.</p>
+              </div>
+            </div>
+          </div>
         </div>
         
         {albumData.albums.length > 0 && (
@@ -91,7 +105,7 @@ function App() {
       </main>
 
       <footer className="app-footer">
-        <p>Built with React • Three.js • Inspired by Spotify's design language</p>
+        <p>Built with React • SVG Graphics • Inspired by Spotify's design language</p>
       </footer>
     </div>
   )

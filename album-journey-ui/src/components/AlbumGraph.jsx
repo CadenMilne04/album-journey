@@ -42,21 +42,26 @@ const AlbumNode = ({ album, position, isSelected, onSelect, onHover }) => {
   );
 };
 
-// Connection line component (SVG)
+// Connection line component (SVG) - cleaner curved paths
 const ConnectionLine = ({ start, end, isHighlighted }) => {
   const midX = (start.x + end.x) / 2;
   const midY = (start.y + end.y) / 2;
   
-  // Create a curved path for better visual flow
-  const path = `M ${start.x + 60} ${start.y + 30} Q ${midX} ${midY - 20} ${end.x + 60} ${end.y + 30}`;
+  // Create a smoother curved path
+  const controlPoint1X = start.x + 60 + (end.x - start.x) * 0.3;
+  const controlPoint1Y = start.y + 30;
+  const controlPoint2X = end.x + 60 - (end.x - start.x) * 0.3;
+  const controlPoint2Y = end.y + 30;
+  
+  const path = `M ${start.x + 60} ${start.y + 30} C ${controlPoint1X} ${controlPoint1Y}, ${controlPoint2X} ${controlPoint2Y}, ${end.x + 60} ${end.y + 30}`;
 
   return (
     <path
       d={path}
       stroke={isHighlighted ? '#1ed760' : '#1db954'}
-      strokeWidth={isHighlighted ? 3 : 1.5}
+      strokeWidth={isHighlighted ? 2.5 : 1.5}
       fill="none"
-      opacity={isHighlighted ? 0.9 : 0.5}
+      opacity={isHighlighted ? 0.8 : 0.4}
       className="connection-line"
     />
   );
@@ -64,66 +69,53 @@ const ConnectionLine = ({ start, end, isHighlighted }) => {
 
 // Era header component
 const EraHeader = ({ era, position, albumCount }) => {
-  const colors = {
-    '1970s': '#ff6b6b',
-    '1980-84': '#4ecdc4', 
-    '1985-89': '#45b7d1',
-    '1990-94': '#96ceb4',
-    '1995+': '#feca57'
-  };
-
-  const labels = {
-    '1970s': 'Pioneer Era',
-    '1980-84': 'Early Hardcore',
-    '1985-89': 'Late 80s Evolution', 
-    '1990-94': 'Grunge & Alternative',
-    '1995+': 'Pop Punk Era'
-  };
-
   return (
     <div 
       className="era-header"
       style={{
         left: '20px',
         top: `${position.y - 40}px`,
-        color: colors[era]
+        color: era.color
       }}
     >
-      <h3>{labels[era]}</h3>
-      <span className="era-subtitle">{era} • {albumCount} albums</span>
+      <h3>{era.name}</h3>
+      <span className="era-subtitle">{era.period} • {albumCount} albums</span>
     </div>
   );
 };
 
 // Main 2D Graph component
-const Graph2D = ({ albums, links, selectedAlbum, onSelectAlbum, hoveredAlbum, onHoverAlbum }) => {
+const Graph2D = ({ albums, links, eras, selectedAlbum, onSelectAlbum, hoveredAlbum, onHoverAlbum }) => {
   console.log('Graph2D received albums:', albums.length);
+  console.log('Graph2D received eras:', eras);
   
   // Calculate positions for albums in timeline layers
   const { albumPositions, eraPositions, containerDimensions } = useMemo(() => {
     const positions = {};
-    const eras = {};
+    const eraPositionData = {};
     
-    // Group albums by decades/eras
+    // Create era lookup for easy access
+    const eraLookup = {};
+    eras.forEach(era => {
+      eraLookup[era.id] = era;
+    });
+    
+    // Group albums by eras
     const albumsByEra = albums.reduce((acc, album) => {
       const year = new Date(album.release_date).getFullYear();
-      let era;
       
-      if (year < 1980) era = '1970s';
-      else if (year < 1985) era = '1980-84';
-      else if (year < 1990) era = '1985-89';
-      else if (year < 1995) era = '1990-94';
-      else era = '1995+';
+      // Find which era this album belongs to
+      const era = eras.find(e => year >= e.yearRange[0] && year <= e.yearRange[1]);
+      const eraId = era ? era.id : 'unknown';
       
-      if (!acc[era]) acc[era] = [];
-      acc[era].push(album);
+      if (!acc[eraId]) acc[eraId] = [];
+      acc[eraId].push(album);
       return acc;
     }, {});
     
     console.log('Albums by era:', albumsByEra);
     
     // Layout configuration
-    const eraOrder = ['1970s', '1980-84', '1985-89', '1990-94', '1995+'];
     const layerHeight = 180; // Height per era layer
     const albumWidth = 120; // Width per album
     const albumSpacing = 140; // Spacing between albums
@@ -132,11 +124,16 @@ const Graph2D = ({ albums, links, selectedAlbum, onSelectAlbum, hoveredAlbum, on
     let currentY = 60; // Start position from top
     let maxWidth = 0;
     
-    eraOrder.forEach((era, eraIndex) => {
-      const albumsInEra = albumsByEra[era] || [];
+    // Process eras in order
+    eras.forEach((era, eraIndex) => {
+      const albumsInEra = albumsByEra[era.id] || [];
       
       if (albumsInEra.length > 0) {
-        eras[era] = { y: currentY, count: albumsInEra.length };
+        eraPositionData[era.id] = { 
+          y: currentY, 
+          count: albumsInEra.length,
+          era: era 
+        };
         
         albumsInEra.forEach((album, albumIndex) => {
           const x = leftMargin + albumIndex * albumSpacing;
@@ -158,8 +155,8 @@ const Graph2D = ({ albums, links, selectedAlbum, onSelectAlbum, hoveredAlbum, on
     console.log('Calculated positions:', positions);
     console.log('Container dimensions:', containerDims);
     
-    return { albumPositions: positions, eraPositions: eras, containerDimensions: containerDims };
-  }, [albums]);
+    return { albumPositions: positions, eraPositions: eraPositionData, containerDimensions: containerDims };
+  }, [albums, eras]);
 
   // Filter links to highlight connections to selected album
   const highlightedLinks = useMemo(() => {
@@ -206,10 +203,10 @@ const Graph2D = ({ albums, links, selectedAlbum, onSelectAlbum, hoveredAlbum, on
       </svg>
       
       {/* Era headers */}
-      {Object.entries(eraPositions).map(([era, pos]) => (
+      {Object.entries(eraPositions).map(([eraId, pos]) => (
         <EraHeader
-          key={era}
-          era={era}
+          key={eraId}
+          era={pos.era}
           position={pos}
           albumCount={pos.count}
         />
@@ -235,87 +232,91 @@ const Graph2D = ({ albums, links, selectedAlbum, onSelectAlbum, hoveredAlbum, on
   );
 };
 
-// Timeline navigation component
+// Timeline navigation component (removed as requested)
 const TimelineNav = ({ albums }) => {
-  const eraStats = useMemo(() => {
-    const stats = albums.reduce((acc, album) => {
-      const year = new Date(album.release_date).getFullYear();
-      let era;
-      
-      if (year < 1980) era = 'Pioneer Era (1970s)';
-      else if (year < 1985) era = 'Early Hardcore (1980-84)';
-      else if (year < 1990) era = 'Late 80s Evolution (1985-89)';
-      else if (year < 1995) era = 'Grunge & Alternative (1990-94)';
-      else era = 'Pop Punk Era (1995+)';
-      
-      if (!acc[era]) acc[era] = { count: 0, color: '' };
-      acc[era].count++;
-      
-      return acc;
-    }, {});
-    
-    // Add colors
-    stats['Pioneer Era (1970s)'] = { ...stats['Pioneer Era (1970s)'], color: '#ff6b6b' };
-    stats['Early Hardcore (1980-84)'] = { ...stats['Early Hardcore (1980-84)'], color: '#4ecdc4' };
-    stats['Late 80s Evolution (1985-89)'] = { ...stats['Late 80s Evolution (1985-89)'], color: '#45b7d1' };
-    stats['Grunge & Alternative (1990-94)'] = { ...stats['Grunge & Alternative (1990-94)'], color: '#96ceb4' };
-    stats['Pop Punk Era (1995+)'] = { ...stats['Pop Punk Era (1995+)'], color: '#feca57' };
-    
-    return stats;
-  }, [albums]);
-
-  return (
-      <></>
-  );
-};
-
-// Album info panel
-const AlbumInfoPanel = ({ album, onClose }) => {
-  if (!album) return null;
-
-  return (
-    <div className="album-info-panel">
-      <div className="album-info-header">
-        <h3>{album.title}</h3>
-        <button className="close-button" onClick={onClose}>×</button>
-      </div>
-      <div className="album-info-content">
-        <div className="album-basic-info">
-          <p><strong>Artist:</strong> {album.artist}</p>
-          <p><strong>Released:</strong> {new Date(album.release_date).toLocaleDateString()}</p>
-          <p><strong>Genres:</strong> {album.genres.join(', ')}</p>
-          <p><strong>Popularity:</strong> {album.popularity}/100</p>
-        </div>
-        
-        {album.context && (
-          <div className="album-context">
-            <h4>About This Album</h4>
-            <p>{album.context.description}</p>
-            
-            {album.context.critical_reception && (
-              <div>
-                <h5>Critical Reception</h5>
-                <p>{album.context.critical_reception}</p>
-              </div>
-            )}
-            
-            {album.context.cultural_impact && (
-              <div>
-                <h5>Cultural Impact</h5>
-                <p>{album.context.cultural_impact}</p>
-              </div>
-            )}
-          </div>
-        )}
-      </div>
-    </div>
-  );
+  return null; // No longer needed
 };
 
 // Main component
-const AlbumGraph = ({ albums, links }) => {
+const AlbumGraph = ({ albums, links, eras = [] }) => {
   const [selectedAlbum, setSelectedAlbum] = useState(null);
   const [hoveredAlbum, setHoveredAlbum] = useState(null);
+
+  // Update hover info in sidebar
+  const updateHoverInfo = (album) => {
+    const hoverSection = document.getElementById('album-hover-info');
+    if (hoverSection) {
+      if (album) {
+        hoverSection.innerHTML = `
+          <h3>Album Info</h3>
+          <div style="color: #1ed760; font-weight: bold; margin-bottom: 0.5rem;">${album.title}</div>
+          <div style="color: #ffffff; margin-bottom: 0.25rem;">${album.artist}</div>
+          <div style="color: #b3b3b3; margin-bottom: 0.5rem;">${new Date(album.release_date).getFullYear()}</div>
+          <div style="color: #b3b3b3; font-size: 0.9rem;">Popularity: ${album.popularity}/100</div>
+        `;
+      } else {
+        hoverSection.innerHTML = `
+          <h3>Hover an Album</h3>
+          <p>Move your mouse over any album to see quick details here.</p>
+        `;
+      }
+    }
+  };
+
+  // Update detailed info in sidebar
+  const updateDetailedInfo = (album) => {
+    const detailsSection = document.getElementById('album-details');
+    if (detailsSection) {
+      if (album) {
+        let contextHtml = '';
+        if (album.context) {
+          contextHtml = `
+            <div style="margin-top: 1rem;">
+              <h4 style="color: #1ed760; margin: 0 0 0.5rem 0; font-size: 1rem;">About This Album</h4>
+              <p style="margin: 0 0 0.75rem 0; color: #ffffff; line-height: 1.4;">${album.context.description}</p>
+              
+              ${album.context.critical_reception ? `
+                <h5 style="color: #1ed760; margin: 0 0 0.25rem 0; font-size: 0.9rem;">Critical Reception</h5>
+                <p style="margin: 0 0 0.75rem 0; color: #b3b3b3; line-height: 1.4; font-size: 0.9rem;">${album.context.critical_reception}</p>
+              ` : ''}
+              
+              ${album.context.cultural_impact ? `
+                <h5 style="color: #1ed760; margin: 0 0 0.25rem 0; font-size: 0.9rem;">Cultural Impact</h5>
+                <p style="margin: 0; color: #b3b3b3; line-height: 1.4; font-size: 0.9rem;">${album.context.cultural_impact}</p>
+              ` : ''}
+            </div>
+          `;
+        }
+        
+        detailsSection.innerHTML = `
+          <h3>Album Details</h3>
+          <div style="color: #1ed760; font-weight: bold; font-size: 1.2rem; margin-bottom: 0.5rem;">${album.title}</div>
+          <div style="color: #ffffff; margin-bottom: 0.25rem;"><strong>Artist:</strong> ${album.artist}</div>
+          <div style="color: #b3b3b3; margin-bottom: 0.25rem;"><strong>Released:</strong> ${new Date(album.release_date).toLocaleDateString()}</div>
+          <div style="color: #b3b3b3; margin-bottom: 0.25rem;"><strong>Genres:</strong> ${album.genres.join(', ')}</div>
+          <div style="color: #b3b3b3; margin-bottom: 0.5rem;"><strong>Popularity:</strong> ${album.popularity}/100</div>
+          ${contextHtml}
+        `;
+      } else {
+        detailsSection.innerHTML = `
+          <h3>Album Details</h3>
+          <p>Click on any album to see detailed information here.</p>
+        `;
+      }
+    }
+  };
+
+  // Handle album selection
+  const handleSelectAlbum = (album) => {
+    setSelectedAlbum(album);
+    updateDetailedInfo(album);
+  };
+
+  // Handle album hover
+  const handleHoverAlbum = (album) => {
+    setHoveredAlbum(album);
+    updateHoverInfo(album);
+  };
 
   if (!albums || albums.length === 0) {
     return (
@@ -331,36 +332,12 @@ const AlbumGraph = ({ albums, links }) => {
         <Graph2D 
           albums={albums}
           links={links}
+          eras={eras}
           selectedAlbum={selectedAlbum}
-          onSelectAlbum={setSelectedAlbum}
+          onSelectAlbum={handleSelectAlbum}
           hoveredAlbum={hoveredAlbum}
-          onHoverAlbum={setHoveredAlbum}
+          onHoverAlbum={handleHoverAlbum}
         />
-      </div>
-      
-      {/* Hover tooltip */}
-      {hoveredAlbum && !selectedAlbum && (
-        <div className="hover-tooltip">
-          <strong>{hoveredAlbum.title}</strong>
-          <br />
-          {hoveredAlbum.artist} ({new Date(hoveredAlbum.release_date).getFullYear()})
-        </div>
-      )}
-      
-      {/* Timeline navigation */}
-      {albums.length > 0 && (
-        <TimelineNav albums={albums} />
-      )}
-      
-      {/* Album info panel */}
-      <AlbumInfoPanel 
-        album={selectedAlbum} 
-        onClose={() => setSelectedAlbum(null)} 
-      />
-      
-      {/* Instructions */}
-      <div className="graph-instructions">
-        <p> Click albums for details • � Lines show musical influences • 📚 Organized by musical eras</p>
       </div>
     </div>
   );
