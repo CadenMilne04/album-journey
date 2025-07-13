@@ -1,153 +1,164 @@
-import { useRef, useEffect, useMemo, useState } from 'react';
-import { Canvas, useFrame } from '@react-three/fiber';
-import { Text, OrbitControls, Html } from '@react-three/drei';
-import * as THREE from 'three';
+import { useMemo, useState } from 'react';
 import './AlbumGraph.css';
 
-// Individual album node component
+// Individual album node component (2D)
 const AlbumNode = ({ album, position, isSelected, onSelect, onHover }) => {
-  const meshRef = useRef();
   const [hovered, setHovered] = useState(false);
-
-  useFrame((state) => {
-    if (meshRef.current) {
-      // Gentle floating animation
-      meshRef.current.position.y = position[1] + Math.sin(state.clock.elapsedTime + position[0]) * 0.1;
-      
-      // Subtle rotation
-      meshRef.current.rotation.y += 0.005;
-      
-      // Scale animation on hover or selection
-      const targetScale = hovered || isSelected ? 1.2 : 1;
-      meshRef.current.scale.lerp(new THREE.Vector3(targetScale, targetScale, targetScale), 0.1);
-    }
-  });
 
   const handleClick = () => {
     onSelect(album);
   };
 
-  const handlePointerOver = () => {
+  const handleMouseEnter = () => {
     setHovered(true);
     onHover(album);
   };
 
-  const handlePointerOut = () => {
+  const handleMouseLeave = () => {
     setHovered(false);
     onHover(null);
   };
 
   return (
-    <group position={position}>
-      <mesh
-        ref={meshRef}
-        onClick={handleClick}
-        onPointerOver={handlePointerOver}
-        onPointerOut={handlePointerOut}
-      >
-        <boxGeometry args={[1.2, 1.2, 0.2]} />
-        <meshStandardMaterial 
-          color={isSelected ? '#1ed760' : hovered ? '#1db954' : '#404040'}
-          emissive={isSelected ? '#0a5d2b' : hovered ? '#0a4d24' : '#000000'}
-        />
-      </mesh>
-      
-      {/* Album title */}
-      <Text
-        position={[0, -1, 0]}
-        fontSize={0.2}
-        color={isSelected ? '#1ed760' : '#ffffff'}
-        anchorX="center"
-        anchorY="middle"
-        maxWidth={3}
-        textAlign="center"
-      >
-        {album.title}
-      </Text>
-      
-      {/* Artist name */}
-      <Text
-        position={[0, -1.3, 0]}
-        fontSize={0.15}
-        color="#b3b3b3"
-        anchorX="center"
-        anchorY="middle"
-        maxWidth={3}
-        textAlign="center"
-      >
-        {album.artist}
-      </Text>
-      
-      {/* Release year */}
-      <Text
-        position={[0, -1.6, 0]}
-        fontSize={0.12}
-        color="#888888"
-        anchorX="center"
-        anchorY="middle"
-      >
-        {new Date(album.release_date).getFullYear()}
-      </Text>
-    </group>
+    <div
+      className={`album-node ${isSelected ? 'selected' : ''} ${hovered ? 'hovered' : ''}`}
+      style={{
+        left: `${position.x}px`,
+        top: `${position.y}px`,
+      }}
+      onClick={handleClick}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+    >
+      <div className="album-cover">
+        <div className="album-placeholder">{album.artist.slice(0, 2)}</div>
+      </div>
+      <div className="album-info">
+        <div className="album-title">{album.title}</div>
+        <div className="album-artist">{album.artist}</div>
+        <div className="album-year">{new Date(album.release_date).getFullYear()}</div>
+      </div>
+    </div>
   );
 };
 
-// Connection line component
+// Connection line component (SVG)
 const ConnectionLine = ({ start, end, isHighlighted }) => {
-  const lineRef = useRef();
+  const midX = (start.x + end.x) / 2;
+  const midY = (start.y + end.y) / 2;
   
-  useFrame(() => {
-    if (lineRef.current) {
-      // Animated glow effect
-      const material = lineRef.current.material;
-      material.opacity = isHighlighted ? 0.8 : 0.4;
-    }
-  });
-
-  const points = useMemo(() => [
-    new THREE.Vector3(...start),
-    new THREE.Vector3(...end)
-  ], [start, end]);
-
-  const lineGeometry = useMemo(() => {
-    const geometry = new THREE.BufferGeometry().setFromPoints(points);
-    return geometry;
-  }, [points]);
+  // Create a curved path for better visual flow
+  const path = `M ${start.x + 60} ${start.y + 30} Q ${midX} ${midY - 20} ${end.x + 60} ${end.y + 30}`;
 
   return (
-    <line ref={lineRef} geometry={lineGeometry}>
-      <lineBasicMaterial 
-        color={isHighlighted ? '#1ed760' : '#1db954'} 
-        transparent 
-        opacity={isHighlighted ? 0.8 : 0.4}
-        linewidth={isHighlighted ? 3 : 1}
-      />
-    </line>
+    <path
+      d={path}
+      stroke={isHighlighted ? '#1ed760' : '#1db954'}
+      strokeWidth={isHighlighted ? 3 : 1.5}
+      fill="none"
+      opacity={isHighlighted ? 0.9 : 0.5}
+      className="connection-line"
+    />
   );
 };
 
-// Main 3D scene component
-const Graph3D = ({ albums, links, selectedAlbum, onSelectAlbum, hoveredAlbum, onHoverAlbum }) => {
-  // Calculate positions for albums in 3D space
-  const albumPositions = useMemo(() => {
+// Era header component
+const EraHeader = ({ era, position, albumCount }) => {
+  const colors = {
+    '1970s': '#ff6b6b',
+    '1980-84': '#4ecdc4', 
+    '1985-89': '#45b7d1',
+    '1990-94': '#96ceb4',
+    '1995+': '#feca57'
+  };
+
+  const labels = {
+    '1970s': 'Pioneer Era',
+    '1980-84': 'Early Hardcore',
+    '1985-89': 'Late 80s Evolution', 
+    '1990-94': 'Grunge & Alternative',
+    '1995+': 'Pop Punk Era'
+  };
+
+  return (
+    <div 
+      className="era-header"
+      style={{
+        left: '20px',
+        top: `${position.y - 40}px`,
+        color: colors[era]
+      }}
+    >
+      <h3>{labels[era]}</h3>
+      <span className="era-subtitle">{era} • {albumCount} albums</span>
+    </div>
+  );
+};
+
+// Main 2D Graph component
+const Graph2D = ({ albums, links, selectedAlbum, onSelectAlbum, hoveredAlbum, onHoverAlbum }) => {
+  console.log('Graph2D received albums:', albums.length);
+  
+  // Calculate positions for albums in timeline layers
+  const { albumPositions, eraPositions, containerDimensions } = useMemo(() => {
     const positions = {};
-    const centerRadius = 8;
-    const layers = 3;
+    const eras = {};
     
-    albums.forEach((album, index) => {
-      const layer = Math.floor(index / 5);
-      const angleStep = (Math.PI * 2) / Math.min(5, albums.length - layer * 5);
-      const angle = (index % 5) * angleStep;
-      const radius = centerRadius + layer * 3;
+    // Group albums by decades/eras
+    const albumsByEra = albums.reduce((acc, album) => {
+      const year = new Date(album.release_date).getFullYear();
+      let era;
       
-      positions[album.id] = [
-        Math.cos(angle) * radius,
-        (layer - 1) * 2,
-        Math.sin(angle) * radius
-      ];
+      if (year < 1980) era = '1970s';
+      else if (year < 1985) era = '1980-84';
+      else if (year < 1990) era = '1985-89';
+      else if (year < 1995) era = '1990-94';
+      else era = '1995+';
+      
+      if (!acc[era]) acc[era] = [];
+      acc[era].push(album);
+      return acc;
+    }, {});
+    
+    console.log('Albums by era:', albumsByEra);
+    
+    // Layout configuration
+    const eraOrder = ['1970s', '1980-84', '1985-89', '1990-94', '1995+'];
+    const layerHeight = 180; // Height per era layer
+    const albumWidth = 120; // Width per album
+    const albumSpacing = 140; // Spacing between albums
+    const leftMargin = 200; // Space for era labels
+    
+    let currentY = 60; // Start position from top
+    let maxWidth = 0;
+    
+    eraOrder.forEach((era, eraIndex) => {
+      const albumsInEra = albumsByEra[era] || [];
+      
+      if (albumsInEra.length > 0) {
+        eras[era] = { y: currentY, count: albumsInEra.length };
+        
+        albumsInEra.forEach((album, albumIndex) => {
+          const x = leftMargin + albumIndex * albumSpacing;
+          const y = currentY;
+          
+          positions[album.id] = { x, y };
+          maxWidth = Math.max(maxWidth, x + albumWidth);
+        });
+        
+        currentY += layerHeight;
+      }
     });
     
-    return positions;
+    const containerDims = {
+      width: Math.max(1200, maxWidth + 100),
+      height: currentY + 100
+    };
+    
+    console.log('Calculated positions:', positions);
+    console.log('Container dimensions:', containerDims);
+    
+    return { albumPositions: positions, eraPositions: eras, containerDimensions: containerDims };
   }, [albums]);
 
   // Filter links to highlight connections to selected album
@@ -159,53 +170,102 @@ const Graph3D = ({ albums, links, selectedAlbum, onSelectAlbum, hoveredAlbum, on
   }, [links, selectedAlbum]);
 
   return (
-    <>
-      {/* Ambient lighting */}
-      <ambientLight intensity={0.4} />
-      <pointLight position={[10, 10, 10]} intensity={0.8} />
-      <pointLight position={[-10, -10, -10]} intensity={0.4} color="#1db954" />
+    <div 
+      className="graph-2d-container"
+      style={{
+        width: `${containerDimensions.width}px`,
+        height: `${containerDimensions.height}px`
+      }}
+    >
+      {/* SVG for connection lines */}
+      <svg 
+        className="connections-svg"
+        style={{
+          width: `${containerDimensions.width}px`,
+          height: `${containerDimensions.height}px`
+        }}
+      >
+        {links.map((link, index) => {
+          const startPos = albumPositions[link.source];
+          const endPos = albumPositions[link.target];
+          if (!startPos || !endPos) return null;
+          
+          const isHighlighted = highlightedLinks.some(hLink => 
+            hLink.source === link.source && hLink.target === link.target
+          );
+          
+          return (
+            <ConnectionLine
+              key={`${link.source}-${link.target}-${index}`}
+              start={startPos}
+              end={endPos}
+              isHighlighted={isHighlighted}
+            />
+          );
+        })}
+      </svg>
       
-      {/* Album nodes */}
-      {albums.map((album) => (
-        <AlbumNode
-          key={album.id}
-          album={album}
-          position={albumPositions[album.id]}
-          isSelected={selectedAlbum?.id === album.id}
-          onSelect={onSelectAlbum}
-          onHover={onHoverAlbum}
+      {/* Era headers */}
+      {Object.entries(eraPositions).map(([era, pos]) => (
+        <EraHeader
+          key={era}
+          era={era}
+          position={pos}
+          albumCount={pos.count}
         />
       ))}
       
-      {/* Connection lines */}
-      {links.map((link, index) => {
-        const startPos = albumPositions[link.source];
-        const endPos = albumPositions[link.target];
-        if (!startPos || !endPos) return null;
-        
-        const isHighlighted = highlightedLinks.some(hLink => 
-          hLink.source === link.source && hLink.target === link.target
-        );
+      {/* Album nodes */}
+      {albums.map((album) => {
+        const position = albumPositions[album.id];
+        if (!position) return null;
         
         return (
-          <ConnectionLine
-            key={`${link.source}-${link.target}-${index}`}
-            start={startPos}
-            end={endPos}
-            isHighlighted={isHighlighted}
+          <AlbumNode
+            key={album.id}
+            album={album}
+            position={position}
+            isSelected={selectedAlbum?.id === album.id}
+            onSelect={onSelectAlbum}
+            onHover={onHoverAlbum}
           />
         );
       })}
+    </div>
+  );
+};
+
+// Timeline navigation component
+const TimelineNav = ({ albums }) => {
+  const eraStats = useMemo(() => {
+    const stats = albums.reduce((acc, album) => {
+      const year = new Date(album.release_date).getFullYear();
+      let era;
       
-      {/* Camera controls */}
-      <OrbitControls 
-        enablePan={true}
-        enableZoom={true}
-        enableRotate={true}
-        minDistance={5}
-        maxDistance={25}
-      />
-    </>
+      if (year < 1980) era = 'Pioneer Era (1970s)';
+      else if (year < 1985) era = 'Early Hardcore (1980-84)';
+      else if (year < 1990) era = 'Late 80s Evolution (1985-89)';
+      else if (year < 1995) era = 'Grunge & Alternative (1990-94)';
+      else era = 'Pop Punk Era (1995+)';
+      
+      if (!acc[era]) acc[era] = { count: 0, color: '' };
+      acc[era].count++;
+      
+      return acc;
+    }, {});
+    
+    // Add colors
+    stats['Pioneer Era (1970s)'] = { ...stats['Pioneer Era (1970s)'], color: '#ff6b6b' };
+    stats['Early Hardcore (1980-84)'] = { ...stats['Early Hardcore (1980-84)'], color: '#4ecdc4' };
+    stats['Late 80s Evolution (1985-89)'] = { ...stats['Late 80s Evolution (1985-89)'], color: '#45b7d1' };
+    stats['Grunge & Alternative (1990-94)'] = { ...stats['Grunge & Alternative (1990-94)'], color: '#96ceb4' };
+    stats['Pop Punk Era (1995+)'] = { ...stats['Pop Punk Era (1995+)'], color: '#feca57' };
+    
+    return stats;
+  }, [albums]);
+
+  return (
+      <></>
   );
 };
 
@@ -267,17 +327,15 @@ const AlbumGraph = ({ albums, links }) => {
 
   return (
     <div className="album-graph-container">
-      <div className="graph-canvas">
-        <Canvas camera={{ position: [0, 5, 15], fov: 60 }}>
-          <Graph3D 
-            albums={albums}
-            links={links}
-            selectedAlbum={selectedAlbum}
-            onSelectAlbum={setSelectedAlbum}
-            hoveredAlbum={hoveredAlbum}
-            onHoverAlbum={setHoveredAlbum}
-          />
-        </Canvas>
+      <div className="graph-wrapper">
+        <Graph2D 
+          albums={albums}
+          links={links}
+          selectedAlbum={selectedAlbum}
+          onSelectAlbum={setSelectedAlbum}
+          hoveredAlbum={hoveredAlbum}
+          onHoverAlbum={setHoveredAlbum}
+        />
       </div>
       
       {/* Hover tooltip */}
@@ -289,6 +347,11 @@ const AlbumGraph = ({ albums, links }) => {
         </div>
       )}
       
+      {/* Timeline navigation */}
+      {albums.length > 0 && (
+        <TimelineNav albums={albums} />
+      )}
+      
       {/* Album info panel */}
       <AlbumInfoPanel 
         album={selectedAlbum} 
@@ -297,7 +360,7 @@ const AlbumGraph = ({ albums, links }) => {
       
       {/* Instructions */}
       <div className="graph-instructions">
-        <p>🖱️ Click and drag to rotate • 🔍 Scroll to zoom • 📀 Click albums for details</p>
+        <p> Click albums for details • � Lines show musical influences • 📚 Organized by musical eras</p>
       </div>
     </div>
   );
