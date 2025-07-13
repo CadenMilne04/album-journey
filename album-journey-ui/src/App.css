@@ -1,0 +1,211 @@
+/* Spotify-inspired styling */
+.app {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #191414 0%, #121212 50%, #000000 100%);
+  color: #ffffff;
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+}
+
+.app-header {
+  text-align: center;
+  padding: 2rem 1rem;
+  background: linear-gradient(180deg, rgba(29, 185, 84, 0.1) 0%, transparent 100%);
+}
+
+.header-content {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.app-title {
+  font-size: 3rem;
+  font-weight: 900;
+  margin: 0 0 0.5rem 0;
+  background: linear-gradient(135deg, #1ed760 0%, #1db954 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.title-icon {
+  font-size: 2.5rem;
+  filter: drop-shadow(0 0 10px rgba(29, 185, 84, 0.5));
+}
+
+.title-subtitle {
+  font-size: 0.9rem;
+  font-weight: 400;
+  color: #b3b3b3;
+  margin-left: 1rem;
+  font-style: italic;
+}
+
+.app-description {
+  font-size: 1.1rem;
+  color: #b3b3b3;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.app-main {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 1rem 2rem;
+}
+
+.search-section {
+  margin-bottom: 2rem;
+}
+
+.error-message {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 1rem;
+  background: rgba(229, 62, 62, 0.1);
+  border: 1px solid rgba(229, 62, 62, 0.3);
+  border-radius: 8px;
+  color: #ff6b6b;
+  margin-top: 1rem;
+  text-align: center;
+}
+
+.error-icon {
+  font-size: 1.2rem;
+}
+
+.current-genre {
+  text-align: center;
+  margin-top: 1rem;
+  padding: 0.75rem 1rem;
+  background: rgba(29, 185, 84, 0.1);
+  border: 1px solid rgba(29, 185, 84, 0.3);
+  border-radius: 20px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #ffffff;
+  position: relative;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.current-genre strong {
+  color: #1ed760;
+  text-transform: capitalize;
+}
+
+.album-count {
+  color: #b3b3b3;
+  font-size: 0.9rem;
+}
+
+.graph-section {
+  margin-bottom: 2rem;
+}
+
+.legend {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  flex-wrap: wrap;
+  margin-top: 1rem;
+  padding: 1rem;
+  background: rgba(40, 40, 40, 0.3);
+  border-radius: 12px;
+  backdrop-filter: blur(10px);
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #b3b3b3;
+  font-size: 0.9rem;
+}
+
+.legend-color {
+  width: 16px;
+  height: 16px;
+  border-radius: 2px;
+}
+
+.spotify-green {
+  background: #1db954;
+  box-shadow: 0 0 8px rgba(29, 185, 84, 0.4);
+}
+
+.selected-album {
+  background: #1ed760;
+  box-shadow: 0 0 8px rgba(29, 185, 84, 0.6);
+}
+
+.default-album {
+  background: #404040;
+}
+
+.app-footer {
+  text-align: center;
+  padding: 2rem 1rem;
+  background: rgba(0, 0, 0, 0.3);
+  border-top: 1px solid #333333;
+}
+
+.app-footer p {
+  margin: 0;
+  color: #b3b3b3;
+  font-size: 0.9rem;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .app-title {
+    font-size: 2rem;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .title-subtitle {
+    margin-left: 0;
+    font-size: 0.8rem;
+  }
+  
+  .app-description {
+    font-size: 1rem;
+  }
+  
+  .legend {
+    gap: 1rem;
+  }
+  
+  .legend-item {
+    font-size: 0.8rem;
+  }
+  
+  .current-genre {
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .app-header {
+    padding: 1.5rem 0.5rem;
+  }
+  
+  .app-title {
+    font-size: 1.8rem;
+  }
+  
+  .legend {
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+  }
+}
