@@ -304,6 +304,23 @@ const AlbumGraph = ({ albums, links, eras = [] }) => {
         
         detailsSection.innerHTML = `
           <h3>Album Details</h3>
+          <div class="album-details-art">
+            ${album.albumArt ? `
+              <img 
+                src="${album.albumArt}" 
+                alt="${album.title} by ${album.artist}"
+                class="album-details-image"
+                onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+              />
+              <div class="album-details-placeholder" style="display: none;">
+                ${album.artist.slice(0, 2)}
+              </div>
+            ` : `
+              <div class="album-details-placeholder">
+                ${album.artist.slice(0, 2)}
+              </div>
+            `}
+          </div>
           <div style="color: #1ed760; font-weight: bold; font-size: 1.2rem; margin-bottom: 0.5rem;">${album.title}</div>
           <div style="color: #ffffff; margin-bottom: 0.25rem;"><strong>Artist:</strong> ${album.artist}</div>
           <div style="color: #b3b3b3; margin-bottom: 0.25rem;"><strong>Released:</strong> ${new Date(album.release_date).toLocaleDateString()}</div>
