@@ -18,7 +18,7 @@ class GroqService {
       throw new Error('Groq API key not configured');
     }
 
-    const prompt = `Generate album data for the music genre "${genre}". You must return EXACTLY the following JSON structure with no additional text, no explanation, and NO MARKDOWN FORMATTING. Include EXACTLY 10 influential albums from this genre with realistic data. Return raw JSON only:
+    const prompt = `Generate album data for the music genre "${genre}". You must return EXACTLY the following JSON structure with no additional text, no explanation, and NO MARKDOWN FORMATTING. Include EXACTLY 15 influential albums from this genre with realistic data. Return raw JSON only:
 
 {
   "eras": [

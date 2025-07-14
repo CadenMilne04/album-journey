@@ -6,6 +6,9 @@ const router = express.Router();
 // GET /api/albums/genre/:genre
 router.get('/genre/:genre', albumController.getAlbumsByGenre);
 
+// GET /api/albums/genres/suggestions (get genre suggestions for search)
+router.get('/genres/suggestions', albumController.getGenreSuggestions);
+
 // POST /api/albums/generate/:genre (for explicit ChatGPT generation)
 router.post('/generate/:genre', albumController.generateAlbumsByGenre);
 

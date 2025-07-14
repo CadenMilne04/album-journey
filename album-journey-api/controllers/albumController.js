@@ -110,10 +110,27 @@ const searchSpotifyAlbum = async (req, res) => {
   }
 };
 
+const getGenreSuggestions = async (req, res) => {
+  try {
+    const genres = await albumService.getGenreSuggestions();
+    res.json({
+      genres: genres,
+      count: genres.length
+    });
+  } catch (error) {
+    console.error('Error fetching genre suggestions:', error);
+    res.status(500).json({
+      error: 'Internal server error',
+      message: 'Failed to fetch genre suggestions'
+    });
+  }
+};
+
 module.exports = {
   getAlbumsByGenre,
   generateAlbumsByGenre,
   getCachedGenres,
   clearCache,
-  searchSpotifyAlbum
+  searchSpotifyAlbum,
+  getGenreSuggestions
 };

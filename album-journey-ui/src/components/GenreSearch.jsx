@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { getGenreSuggestions } from '../services/albumService';
 import './GenreSearch.css';
 
 const GenreSearch = ({ onSearch, isLoading }) => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [suggestions] = useState([
+  const [suggestions, setSuggestions] = useState([
     'punk rock',
     'hip hop',
     'jazz',
@@ -15,7 +16,26 @@ const GenreSearch = ({ onSearch, isLoading }) => {
     'folk',
     'reggae'
   ]);
+  const [genreCount, setGenreCount] = useState(0);
   const [showSuggestions, setShowSuggestions] = useState(false);
+
+  // Fetch genre suggestions from API on component mount
+  useEffect(() => {
+    const fetchSuggestions = async () => {
+      try {
+        const genreSuggestions = await getGenreSuggestions();
+        if (genreSuggestions.length > 0) {
+          setSuggestions(genreSuggestions);
+          setGenreCount(genreSuggestions.length);
+        }
+      } catch (error) {
+        console.error('Failed to fetch genre suggestions:', error);
+        // Keep default suggestions if API call fails
+      }
+    };
+
+    fetchSuggestions();
+  }, []);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -62,6 +82,18 @@ const GenreSearch = ({ onSearch, isLoading }) => {
             className="search-input"
             disabled={isLoading}
           />
+          
+          {/* Genre Counter Display - inline with search */}
+          <div className="stats-badge">
+            <svg className="stats-icon" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M9 11H7v9a2 2 0 002 2h1V11zm4 0V22h1a2 2 0 002-2v-9h-3zm4-4V22h1a2 2 0 002-2V7h-3zm-4 3V7H9v3h4zM7 7v9H5a2 2 0 01-2-2V7h4z"/>
+            </svg>
+            <span className="stats-text">
+              <span className="stats-number">{genreCount}</span>
+              <span className="stats-label">explored</span>
+            </span>
+          </div>
+          
           {isLoading && (
             <div className="loading-spinner">
               <div className="spinner"></div>

@@ -361,6 +361,23 @@ export const getAlbumsForGenre = async (genre) => {
   }
 };
 
+export const getGenreSuggestions = async () => {
+  try {
+    const response = await fetch('http://localhost:3001/api/albums/genres/suggestions');
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    return data.genres || [];
+  } catch (error) {
+    console.error('Error fetching genre suggestions from API:', error);
+    // Fallback to mock data if API is unavailable
+    return Object.keys(mockAlbumData);
+  }
+};
+
 export const getAvailableGenres = () => {
   // For now, return the available genres from mock data
   // TODO: In the future, this could call /api/albums/genres endpoint

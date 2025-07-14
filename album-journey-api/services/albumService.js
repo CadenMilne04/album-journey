@@ -533,9 +533,22 @@ const clearCache = async () => {
   }
 };
 
+const getGenreSuggestions = async () => {
+  try {
+    const cachedGenres = await databaseService.getCachedGenres();
+    // Extract just the genre names and sort them
+    const genreNames = cachedGenres.map(row => row.genre).sort();
+    return genreNames;
+  } catch (error) {
+    console.error('Error fetching genre suggestions:', error.message);
+    return [];
+  }
+};
+
 module.exports = {
   getAlbumsForGenre,
   getAvailableGenres,
   getCachedGenres,
-  clearCache
+  clearCache,
+  getGenreSuggestions
 };
