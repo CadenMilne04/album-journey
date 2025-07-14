@@ -1,5 +1,6 @@
 const groqService = require('./groqService');
 const databaseService = require('./databaseService');
+const spotifyService = require('./spotifyService');
 
 // Mock service for album data - mirrors the frontend mock data
 const mockAlbumData = {
@@ -376,6 +377,32 @@ const getAlbumsForGenre = async (genre) => {
   try {
     const cachedData = await databaseService.getAlbumData(normalizedGenre);
     if (cachedData) {
+      // Check if cached albums already have album art
+      const needsEnrichment = cachedData.albums && cachedData.albums.some(album => !album.albumArt);
+      
+      if (needsEnrichment) {
+        console.log('Cached data found but missing album art, enriching...');
+        const enrichedAlbums = await enrichAlbumsWithSpotifyData(cachedData.albums || []);
+        const enrichedData = {
+          ...cachedData,
+          albums: enrichedAlbums
+        };
+        
+        // Update cache with enriched data
+        try {
+          await databaseService.saveAlbumData(normalizedGenre, enrichedData);
+        } catch (updateError) {
+          console.error('Error updating cache with album art:', updateError.message);
+        }
+        
+        return {
+          albums: enrichedData.albums || [],
+          links: enrichedData.links || [],
+          eras: enrichedData.eras || [],
+          source: 'cache-enriched'
+        };
+      }
+      
       return {
         albums: cachedData.albums || [],
         links: cachedData.links || [],
@@ -393,17 +420,25 @@ const getAlbumsForGenre = async (genre) => {
       console.log(`Generating album data for "${genre}" using Groq...`);
       const generatedData = await groqService.generateAlbumData(genre);
       
-      // Cache the generated data
+      // Enrich albums with Spotify album art
+      const enrichedAlbums = await enrichAlbumsWithSpotifyData(generatedData.albums || []);
+      
+      const enrichedData = {
+        ...generatedData,
+        albums: enrichedAlbums
+      };
+      
+      // Cache the enriched data
       try {
-        await databaseService.saveAlbumData(normalizedGenre, generatedData);
+        await databaseService.saveAlbumData(normalizedGenre, enrichedData);
       } catch (cacheError) {
         console.error('Error caching generated data:', cacheError.message);
       }
       
       return {
-        albums: generatedData.albums || [],
-        links: generatedData.links || [],
-        eras: generatedData.eras || [],
+        albums: enrichedData.albums || [],
+        links: enrichedData.links || [],
+        eras: enrichedData.eras || [],
         source: 'groq'
       };
     } catch (error) {
@@ -421,19 +456,58 @@ const getAlbumsForGenre = async (genre) => {
     return { albums: [], links: [], eras: [], source: 'none' };
   }
   
-  // Cache mock data if it exists
+  // Enrich mock albums with Spotify album art
+  const enrichedAlbums = await enrichAlbumsWithSpotifyData(data.albums || []);
+  const enrichedData = {
+    ...data,
+    albums: enrichedAlbums
+  };
+  
+  // Cache enriched mock data
   try {
-    await databaseService.saveAlbumData(normalizedGenre, data);
+    await databaseService.saveAlbumData(normalizedGenre, enrichedData);
   } catch (cacheError) {
     console.error('Error caching mock data:', cacheError.message);
   }
   
   return {
-    albums: data.albums || [],
-    links: data.links || [],
-    eras: data.eras || [],
+    albums: enrichedData.albums || [],
+    links: enrichedData.links || [],
+    eras: enrichedData.eras || [],
     source: 'mock'
   };
+};
+
+// Helper function to enrich albums with Spotify album art
+const enrichAlbumsWithSpotifyData = async (albums) => {
+  if (!spotifyService.isAvailable()) {
+    console.log('Spotify service not available, skipping album art enrichment');
+    return albums;
+  }
+
+  console.log(`🎵 Enriching ${albums.length} albums with Spotify data...`);
+  
+  const enrichedAlbums = await Promise.all(
+    albums.map(async (album) => {
+      try {
+        const albumArtUrl = await spotifyService.getAlbumArtUrl(album.title, album.artist);
+        
+        return {
+          ...album,
+          albumArt: albumArtUrl || `https://via.placeholder.com/300x300/1DB954/000000?text=${encodeURIComponent(album.artist)}`
+        };
+      } catch (error) {
+        console.error(`Error fetching album art for "${album.title}" by ${album.artist}:`, error.message);
+        return {
+          ...album,
+          albumArt: `https://via.placeholder.com/300x300/1DB954/000000?text=${encodeURIComponent(album.artist)}`
+        };
+      }
+    })
+  );
+
+  console.log(`✅ Successfully enriched albums with Spotify data`);
+  return enrichedAlbums;
 };
 
 const getAvailableGenres = () => {

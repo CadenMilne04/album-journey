@@ -31,7 +31,21 @@ const AlbumNode = ({ album, position, isSelected, onSelect, onHover }) => {
       onMouseLeave={handleMouseLeave}
     >
       <div className="album-cover">
-        <div className="album-placeholder">{album.artist.slice(0, 2)}</div>
+        {album.albumArt ? (
+          <img 
+            src={album.albumArt} 
+            alt={`${album.title} by ${album.artist}`}
+            className="album-art"
+            onError={(e) => {
+              // Fallback if image fails to load
+              e.target.style.display = 'none';
+              e.target.nextSibling.style.display = 'flex';
+            }}
+          />
+        ) : null}
+        <div className="album-placeholder" style={{ display: album.albumArt ? 'none' : 'flex' }}>
+          {album.artist.slice(0, 2)}
+        </div>
       </div>
       <div className="album-info">
         <div className="album-title">{album.title}</div>

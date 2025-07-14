@@ -15,4 +15,7 @@ router.get('/cache', albumController.getCachedGenres);
 // DELETE /api/albums/cache (clear cache)
 router.delete('/cache', albumController.clearCache);
 
+// GET /api/albums/search-spotify/:album (test Spotify search)
+router.get('/search-spotify/:album', albumController.searchSpotifyAlbum);
+
 module.exports = router;

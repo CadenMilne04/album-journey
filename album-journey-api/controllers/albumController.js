@@ -1,5 +1,6 @@
 const albumService = require('../services/albumService');
 const groqService = require('../services/groqService');
+const spotifyService = require('../services/spotifyService');
 
 const getAlbumsByGenre = async (req, res) => {
   try {
@@ -78,9 +79,41 @@ const clearCache = async (req, res) => {
   }
 };
 
+const searchSpotifyAlbum = async (req, res) => {
+  try {
+    const { album } = req.params;
+    const { artist } = req.query; // Optional artist parameter
+    
+    if (!spotifyService.isAvailable()) {
+      return res.status(503).json({
+        error: 'Spotify service unavailable',
+        message: 'Spotify credentials not configured'
+      });
+    }
+    
+    const albumData = await spotifyService.searchAlbum(album, artist);
+    
+    if (!albumData) {
+      return res.status(404).json({
+        error: 'Album not found',
+        message: `No album found for: ${album}${artist ? ` by ${artist}` : ''}`
+      });
+    }
+    
+    res.json(albumData);
+  } catch (error) {
+    console.error('Error searching Spotify:', error);
+    res.status(500).json({
+      error: 'Internal server error',
+      message: 'Failed to search Spotify'
+    });
+  }
+};
+
 module.exports = {
   getAlbumsByGenre,
   generateAlbumsByGenre,
   getCachedGenres,
-  clearCache
+  clearCache,
+  searchSpotifyAlbum
 };
