@@ -1,7 +1,9 @@
 import { useState } from 'react'
 import './App.css'
+import About from './components/About'
 import GenreSearch from './components/GenreSearch'
 import AlbumGraph from './components/AlbumGraph'
+import ChatFeedback from './components/ChatFeedback'
 import { getAlbumsForGenre } from './services/albumService'
 
 function App() {
@@ -9,6 +11,7 @@ function App() {
   const [isLoading, setIsLoading] = useState(false)
   const [currentGenre, setCurrentGenre] = useState('')
   const [error, setError] = useState('')
+  const [showAbout, setShowAbout] = useState(false)
 
   const handleSearch = async (genre) => {
     setIsLoading(true)
@@ -31,15 +34,34 @@ function App() {
 
   return (
     <div className="app">
+      {/* Corner buttons */}
+      <div className="corner-buttons">
+        <button className="corner-btn left" onClick={() => window.open('https://cadenmilne.com', '_blank')}>
+          Created by Caden Milne <span className="external-arrow">↗</span>
+        </button>
+        <div className="corner-btn-group">
+          <button className="corner-btn" onClick={() => setShowAbout(true)}>
+            About
+          </button>
+          <button className="corner-btn coffee-btn" onClick={() => window.open('https://buymeacoffee.com/cadenmilne', '_blank')}>
+            <img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" />
+          </button>
+        </div>
+      </div>
+      
       <header className="app-header">
         <div className="header-content">
           <h1 className="app-title">
-            <span className="title-icon">🎵</span>
-            Album Journey
-            <span className="title-subtitle">Explore Musical Evolution</span>
+            <span className="title-icon">
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="none">
+                <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z" fill="currentColor"/>
+              </svg>
+            </span>
+            AlbumAI
+            <span className="title-subtitle">Intelligent Music Discovery</span>
           </h1>
           <p className="app-description">
-            Discover the influential albums that shaped music genres through an interactive timeline
+            Discover musical connections and explore album influences with AI-powered insights
           </p>
         </div>
       </header>
@@ -105,8 +127,11 @@ function App() {
       </main>
 
       <footer className="app-footer">
-        <p>Built with React • SVG Graphics • Inspired by Spotify's design language</p>
+        <p>Caden Milne © 2025</p>
       </footer>
+      
+      <About isOpen={showAbout} onClose={() => setShowAbout(false)} />
+      <ChatFeedback />
     </div>
   )
 }

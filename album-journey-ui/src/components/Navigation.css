@@ -1,0 +1,113 @@
+.navigation {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 24px;
+  background: rgba(26, 26, 26, 0.95);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid #333;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+/* Left side - Creator link */
+.creator-link {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #b3b3b3;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  padding: 8px 12px;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
+}
+
+.creator-link:hover {
+  color: #1ed760;
+  border-color: #1ed760;
+  background: rgba(30, 231, 96, 0.1);
+}
+
+.creator-icon {
+  width: 18px;
+  height: 18px;
+}
+
+/* Center - About button */
+.nav-button {
+  background: none;
+  border: 1px solid #404040;
+  color: #ffffff;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.nav-button:hover {
+  border-color: #1ed760;
+  color: #1ed760;
+  background: rgba(30, 231, 96, 0.1);
+}
+
+/* Right side - Coffee link */
+.coffee-link {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #FFDD00;
+  color: #000000;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 8px 16px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  border: 2px solid #FFDD00;
+}
+
+.coffee-link:hover {
+  background: #FFE135;
+  border-color: #FFE135;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(255, 221, 0, 0.3);
+}
+
+.coffee-icon {
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .navigation {
+    padding: 12px 16px;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  
+  .nav-center {
+    order: 3;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    margin-top: 8px;
+  }
+  
+  .creator-link, .coffee-link {
+    font-size: 12px;
+    padding: 6px 10px;
+  }
+  
+  .creator-icon, .coffee-icon {
+    width: 16px;
+    height: 16px;
+  }
+}

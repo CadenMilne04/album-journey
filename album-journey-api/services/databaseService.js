@@ -37,6 +37,24 @@ class DatabaseService {
         console.log('Album cache table ready');
       }
     });
+
+    // Create feedback table
+    const feedbackSql = `
+      CREATE TABLE IF NOT EXISTS feedback (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        feedback TEXT NOT NULL,
+        timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      )
+    `;
+
+    this.db.run(feedbackSql, (err) => {
+      if (err) {
+        console.error('Error creating feedback table:', err.message);
+      } else {
+        console.log('Feedback table ready');
+      }
+    });
   }
 
   async getAlbumData(genre) {
@@ -110,6 +128,36 @@ class DatabaseService {
       this.db.all(sql, (err, rows) => {
         if (err) {
           console.error('Error fetching cached genres:', err.message);
+          reject(err);
+        } else {
+          resolve(rows);
+        }
+      });
+    });
+  }
+
+  async saveFeedback(feedbackData) {
+    return new Promise((resolve, reject) => {
+      const sql = 'INSERT INTO feedback (feedback, timestamp) VALUES (?, ?)';
+      
+      this.db.run(sql, [feedbackData.feedback, feedbackData.timestamp], function(err) {
+        if (err) {
+          console.error('Error saving feedback:', err.message);
+          reject(err);
+        } else {
+          resolve({ id: this.lastID });
+        }
+      });
+    });
+  }
+
+  async getAllFeedback() {
+    return new Promise((resolve, reject) => {
+      const sql = 'SELECT * FROM feedback ORDER BY created_at DESC';
+      
+      this.db.all(sql, (err, rows) => {
+        if (err) {
+          console.error('Error fetching feedback:', err.message);
           reject(err);
         } else {
           resolve(rows);

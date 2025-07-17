@@ -54,7 +54,7 @@ class GroqService {
 }
 
 Rules:
-- MUST include EXACTLY 10 albums - this is critical for proper visualization
+- MUST include EXACTLY 15 albums - this is critical for proper visualization
 - Use real albums and artists from the ${genre} genre
 - Make album IDs in format: "artist_year" (lowercase, underscores) - MUST be unique
 - Include 3-5 eras that make sense for the genre's history
@@ -68,7 +68,7 @@ Rules:
 - Each album MUST have a unique ID
 - All album references in influences/influencees/links MUST match actual album IDs
 
-IMPORTANT: Return ONLY the JSON object. No markdown, no code blocks, no explanations. Start with { and end with }. MUST HAVE EXACTLY 10 ALBUMS.`;
+IMPORTANT: Return ONLY the JSON object. No markdown, no code blocks, no explanations. Start with { and end with }. MUST HAVE EXACTLY 15 ALBUMS.`;
 
     try {
       const completion = await this.groq.chat.completions.create({
