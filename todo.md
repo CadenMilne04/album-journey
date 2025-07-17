@@ -1,4 +1,4 @@
 - [ ] better spotify integration
 - [ ] number of albums discovered tracker
-- [ ] buy me a coffee button fix
 - [ ] mobile responsive
+- [x] buy me a coffee button fix

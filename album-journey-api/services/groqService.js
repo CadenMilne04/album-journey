@@ -41,6 +41,7 @@ class GroqService {
       "popularity": 85,
       "influences": ["album_id1", "album_id2"],
       "influencees": ["album_id3", "album_id4"],
+      "spotify_url": null,
       "context": {
         "description": "Album description",
         "critical_reception": "Critical reception",

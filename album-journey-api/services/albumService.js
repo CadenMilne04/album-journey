@@ -490,17 +490,19 @@ const enrichAlbumsWithSpotifyData = async (albums) => {
   const enrichedAlbums = await Promise.all(
     albums.map(async (album) => {
       try {
-        const albumArtUrl = await spotifyService.getAlbumArtUrl(album.title, album.artist);
+        const spotifyData = await spotifyService.searchAlbum(album.title, album.artist);
         
         return {
           ...album,
-          albumArt: albumArtUrl || `https://via.placeholder.com/300x300/1DB954/000000?text=${encodeURIComponent(album.artist)}`
+          albumArt: spotifyData?.imageUrl || `https://via.placeholder.com/300x300/1DB954/000000?text=${encodeURIComponent(album.artist)}`,
+          spotify_url: spotifyData?.spotifyUrl || null
         };
       } catch (error) {
-        console.error(`Error fetching album art for "${album.title}" by ${album.artist}:`, error.message);
+        console.error(`Error fetching Spotify data for "${album.title}" by ${album.artist}:`, error.message);
         return {
           ...album,
-          albumArt: `https://via.placeholder.com/300x300/1DB954/000000?text=${encodeURIComponent(album.artist)}`
+          albumArt: `https://via.placeholder.com/300x300/1DB954/000000?text=${encodeURIComponent(album.artist)}`,
+          spotify_url: null
         };
       }
     })
