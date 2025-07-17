@@ -227,29 +227,104 @@
 /* Mobile responsiveness */
 @media (max-width: 768px) {
   .album-graph-container {
+    height: 60vh;
+    min-height: 400px;
+  }
+
+  .album-node {
+    width: 100px;
+  }
+
+  .album-cover {
+    width: 70px;
+    height: 70px;
+  }
+
+  .album-title {
+    font-size: 10px;
+    max-width: 100px;
+  }
+
+  .album-artist {
+    font-size: 9px;
+    max-width: 100px;
+  }
+
+  .album-year {
+    font-size: 8px;
+  }
+
+  .album-details-art {
+    margin-bottom: 0.5rem;
+  }
+
+  .album-details-image {
+    width: 150px;
+    height: 150px;
+  }
+
+  .album-details-placeholder {
+    width: 150px;
+    height: 150px;
+    font-size: 24px;
+  }
+
+  .era-header h3 {
+    font-size: 16px;
+  }
+
+  .era-subtitle {
+    font-size: 11px;
+  }
+}
+
+@media (max-width: 480px) {
+  .album-graph-container {
     height: 50vh;
     min-height: 300px;
   }
 
   .album-node {
-    width: 120px;
+    width: 90px;
   }
 
   .album-cover {
-    width: 80px;
-    height: 80px;
+    width: 60px;
+    height: 60px;
   }
 
   .album-title {
-    font-size: 11px;
-    max-width: 120px;
+    font-size: 9px;
+    max-width: 90px;
   }
 
   .album-artist {
-    font-size: 10px;
-    max-width: 120px;
+    font-size: 8px;
+    max-width: 90px;
   }
 
+  .album-year {
+    font-size: 7px;
+  }
+
+  .album-details-image {
+    width: 120px;
+    height: 120px;
+  }
+
+  .album-details-placeholder {
+    width: 120px;
+    height: 120px;
+    font-size: 20px;
+  }
+
+  .era-header h3 {
+    font-size: 14px;
+  }
+
+  .era-subtitle {
+    font-size: 10px;
+  }
 }
 
 /* Custom scrollbar */

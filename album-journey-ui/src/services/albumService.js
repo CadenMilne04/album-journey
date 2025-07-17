@@ -1,6 +1,11 @@
+// API configuration
+const API_BASE_URL = process.env.NODE_ENV === 'production' 
+  ? 'https://albumai.cadenmilne.com/api'
+  : 'http://localhost:3001/api';
+
 export const getAlbumsForGenre = async (genre) => {
   try {
-    const response = await fetch(`http://localhost:3001/api/albums/genre/${encodeURIComponent(genre)}`);
+    const response = await fetch(`${API_BASE_URL}/albums/genre/${encodeURIComponent(genre)}`);
     
     if (!response.ok) {
       if (response.status === 404) {
@@ -23,7 +28,7 @@ export const getAlbumsForGenre = async (genre) => {
 
 export const getGenreSuggestions = async () => {
   try {
-    const response = await fetch('http://localhost:3001/api/albums/genres/suggestions');
+    const response = await fetch(`${API_BASE_URL}/albums/genres/suggestions`);
     
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);

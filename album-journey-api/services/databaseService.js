@@ -1,9 +1,18 @@
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
+const fs = require('fs');
 
 class DatabaseService {
   constructor() {
-    this.dbPath = path.join(__dirname, '..', 'albums.db');
+    // Use environment variable for database path, default to current directory
+    this.dbPath = process.env.DB_PATH || path.join(__dirname, '..', 'albums.db');
+    
+    // Ensure the directory exists
+    const dbDir = path.dirname(this.dbPath);
+    if (!fs.existsSync(dbDir)) {
+      fs.mkdirSync(dbDir, { recursive: true });
+    }
+    
     this.db = null;
     this.init();
   }

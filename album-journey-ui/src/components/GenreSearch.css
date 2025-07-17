@@ -186,4 +186,69 @@
   .stats-label {
     font-size: 10px;
   }
+  
+  .suggestions-dropdown {
+    font-size: 14px;
+  }
+  
+  .suggestion-item {
+    padding: 10px 14px;
+    font-size: 13px;
+  }
+  
+  .genre-icon {
+    width: 14px;
+    height: 14px;
+    margin-right: 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .genre-search {
+    margin: 0 auto 1rem;
+  }
+  
+  .search-input {
+    padding: 10px 80px 10px 40px;
+    font-size: 16px;
+  }
+  
+  .search-icon {
+    left: 12px;
+    width: 18px;
+    height: 18px;
+  }
+  
+  .stats-badge {
+    padding: 2px 4px;
+    right: 8px;
+  }
+  
+  .stats-icon {
+    width: 10px;
+    height: 10px;
+  }
+  
+  .stats-number {
+    font-size: 11px;
+  }
+  
+  .stats-label {
+    font-size: 9px;
+  }
+  
+  .suggestions-dropdown {
+    font-size: 13px;
+  }
+  
+  .suggestion-item {
+    padding: 8px 12px;
+    font-size: 12px;
+  }
+  
+  .genre-icon {
+    width: 12px;
+    height: 12px;
+    margin-right: 8px;
+  }
 }

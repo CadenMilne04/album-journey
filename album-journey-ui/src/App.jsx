@@ -12,6 +12,7 @@ function App() {
   const [currentGenre, setCurrentGenre] = useState('')
   const [error, setError] = useState('')
   const [showAbout, setShowAbout] = useState(false)
+  const [showMobileMenu, setShowMobileMenu] = useState(false)
 
   const handleSearch = async (genre) => {
     setIsLoading(true)
@@ -34,8 +35,59 @@ function App() {
 
   return (
     <div className="app">
-      {/* Corner buttons */}
-      <div className="corner-buttons">
+      {/* Mobile hamburger menu */}
+      <div className="mobile-menu-container">
+        <button 
+          className="hamburger-btn" 
+          onClick={() => setShowMobileMenu(!showMobileMenu)}
+          aria-label="Toggle menu"
+        >
+          <span className={`hamburger-line ${showMobileMenu ? 'active' : ''}`}></span>
+          <span className={`hamburger-line ${showMobileMenu ? 'active' : ''}`}></span>
+          <span className={`hamburger-line ${showMobileMenu ? 'active' : ''}`}></span>
+        </button>
+      </div>
+
+      {/* Mobile menu overlay */}
+      {showMobileMenu && (
+        <div className="mobile-menu-overlay" onClick={() => setShowMobileMenu(false)}>
+          <div className="mobile-menu" onClick={(e) => e.stopPropagation()}>
+            <div className="mobile-menu-items">
+              <button 
+                className="mobile-menu-item" 
+                onClick={() => {
+                  setShowAbout(true)
+                  setShowMobileMenu(false)
+                }}
+              >
+                About
+              </button>
+              <button 
+                className="mobile-menu-item" 
+                onClick={() => {
+                  window.open('https://cadenmilne.com', '_blank')
+                  setShowMobileMenu(false)
+                }}
+              >
+                Created by Caden Milne
+                <span className="external-arrow">↗</span>
+              </button>
+              <button 
+                className="mobile-menu-item coffee-item" 
+                onClick={() => {
+                  window.open('https://buymeacoffee.com/cadenmilnes', '_blank')
+                  setShowMobileMenu(false)
+                }}
+              >
+                <img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Desktop corner buttons */}
+      <div className="corner-buttons desktop-only">
         <button className="corner-btn left" onClick={() => window.open('https://cadenmilne.com', '_blank')}>
           Created by Caden Milne <span className="external-arrow">↗</span>
         </button>
@@ -43,7 +95,7 @@ function App() {
           <button className="corner-btn" onClick={() => setShowAbout(true)}>
             About
           </button>
-          <button className="corner-btn coffee-btn" onClick={() => window.open('https://buymeacoffee.com/cadenmilne', '_blank')}>
+          <button className="corner-btn coffee-btn" onClick={() => window.open('https://buymeacoffee.com/cadenmilnes', '_blank')}>
             <img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" />
           </button>
         </div>
@@ -77,15 +129,10 @@ function App() {
             </div>
           )}
           
-          {currentGenre && !error && (
+                    {currentGenre && !error && (
             <div className="current-genre">
               <span>Exploring: </span>
               <strong>{currentGenre}</strong>
-              {albumData.albums.length > 0 && (
-                <span className="album-count">
-                  ({albumData.albums.length} albums)
-                </span>
-              )}
             </div>
           )}
         </div>
